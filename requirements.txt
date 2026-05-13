@@ -31,6 +31,12 @@ plotly>=5.20.0
 # 날짜/시간 처리
 python-dateutil>=2.9.0
 
+# RSS 파싱 (구글 뉴스)
+feedparser>=6.0.0
+
+# Windows SSL 인증서 (Windows 환경 필수)
+truststore>=0.9.0
+
 # 테스트
 pytest>=8.0.0
 pytest-mock>=3.12.0
