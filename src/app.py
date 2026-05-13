@@ -56,7 +56,7 @@ st.set_page_config(
 )
 
 _COINS = ["BTC", "ETH"]
-_COIN_NAMES = {"BTC": "Bitcoin (BTC)", "ETH": "Ethereum (ETH)"}
+_COIN_NAMES = {"BTC": "비트코인 (BTC)", "ETH": "이더리움 (ETH)"}
 _COIN_COLORS = {"BTC": "#F7931A", "ETH": "#627EEA"}
 
 
@@ -66,7 +66,7 @@ _COIN_COLORS = {"BTC": "#F7931A", "ETH": "#627EEA"}
 def load_current_prices() -> list[dict]:
     """실시간 BTC/ETH 가격을 가져온다 (5분 캐시).
 
-    Returns:
+    반환값:
         list[dict]: 가격 딕셔너리 목록
     """
     return fetch_current_prices(["BTC", "ETH"])
@@ -76,11 +76,11 @@ def load_current_prices() -> list[dict]:
 def load_price_history(coin: str, days: int) -> list[dict]:
     """코인 가격 이력을 가져온다 (10분 캐시).
 
-    Args:
+    매개변수:
         coin: 코인 심볼
         days: 조회 일수
 
-    Returns:
+    반환값:
         list[dict]: 가격 이력 딕셔너리 목록
     """
     return fetch_price_history(coin, days)
@@ -90,10 +90,10 @@ def load_price_history(coin: str, days: int) -> list[dict]:
 def load_news(limit: int = 30) -> list[dict]:
     """최신 크립토 뉴스를 가져온다 (10분 캐시).
 
-    Args:
+    매개변수:
         limit: 최대 뉴스 수
 
-    Returns:
+    반환값:
         list[dict]: 뉴스 딕셔너리 목록
     """
     return fetch_crypto_news(limit=limit)
@@ -102,7 +102,7 @@ def load_news(limit: int = 30) -> list[dict]:
 def _get_db_client():
     """Supabase 클라이언트를 세션에서 재사용한다.
 
-    Returns:
+    반환값:
         Client | None: Supabase 클라이언트 또는 None (설정 오류 시)
     """
     if "db_client" not in st.session_state:
@@ -118,7 +118,7 @@ def _get_db_client():
 def render_price_metrics(prices: list[dict]) -> None:
     """가격 지표 카드를 렌더링한다.
 
-    Args:
+    매개변수:
         prices: 가격 딕셔너리 목록
     """
     price_map = {p["coin"]: p for p in prices}
@@ -152,7 +152,7 @@ def render_price_metrics(prices: list[dict]) -> None:
 def render_price_chart(coin: str, days: int) -> None:
     """코인 가격 이력 차트를 렌더링한다.
 
-    Args:
+    매개변수:
         coin: 코인 심볼
         days: 표시할 일수
     """
@@ -196,7 +196,7 @@ def render_price_chart(coin: str, days: int) -> None:
 def render_news_list(news_list: list[dict], coin_filter: str | None = None) -> None:
     """뉴스 목록을 카드 형태로 렌더링한다.
 
-    Args:
+    매개변수:
         news_list: 뉴스 딕셔너리 목록
         coin_filter: 필터링할 코인 심볼. None이면 전체 표시
     """
@@ -233,7 +233,7 @@ def render_ai_analysis(
 ) -> None:
     """AI 상관관계 분석 결과를 렌더링한다.
 
-    Args:
+    매개변수:
         coin: 코인 심볼
         news_list: 뉴스 목록
         price_data: 가격 딕셔너리
@@ -285,7 +285,7 @@ def render_ai_analysis(
 def _display_analysis_result(result: dict) -> None:
     """분석 결과 딕셔너리를 화면에 출력한다.
 
-    Args:
+    매개변수:
         result: 분석 결과 딕셔너리
     """
     sentiment = result.get("sentiment", "neutral")
@@ -303,7 +303,7 @@ def _display_analysis_result(result: dict) -> None:
 def render_news_stats(db) -> None:
     """뉴스 수집 통계 탭을 렌더링한다 (일별 관리 + 누적 비교).
 
-    Args:
+    매개변수:
         db: Supabase 클라이언트 (None이면 안내 메시지 표시)
     """
     if not db:
@@ -330,10 +330,10 @@ def render_news_stats(db) -> None:
     with col2:
         st.metric(f"최근 {stat_days}일 수집", f"{len(df):,} 건")
     with col3:
-        naver_cnt = int((df["source"] == "Naver News").sum())
+        naver_cnt = int((df["source"] == "네이버 뉴스").sum())
         st.metric("네이버 뉴스", f"{naver_cnt:,} 건")
     with col4:
-        google_cnt = int((df["source"] == "Google News").sum())
+        google_cnt = int((df["source"] == "구글 뉴스").sum())
         st.metric("구글 뉴스", f"{google_cnt:,} 건")
 
     st.divider()
@@ -359,10 +359,10 @@ def render_news_stats(db) -> None:
 def _build_stats_df(raw: list[dict]) -> pd.DataFrame:
     """raw 뉴스 데이터를 통계용 DataFrame으로 변환한다.
 
-    Args:
+    매개변수:
         raw: DB에서 조회한 뉴스 딕셔너리 목록
 
-    Returns:
+    반환값:
         pd.DataFrame: 날짜/소스/코인 컬럼이 정리된 DataFrame
     """
     df = pd.DataFrame(raw)
@@ -371,8 +371,8 @@ def _build_stats_df(raw: list[dict]) -> pd.DataFrame:
     df["source"] = df["source"].fillna("기타")
     # source를 네이버/구글/기타 3가지로 정규화
     df["source"] = df["source"].apply(
-        lambda s: "Naver News" if "naver" in s.lower()
-        else ("Google News" if "google" in s.lower() else "기타")
+        lambda s: "네이버 뉴스" if "naver" in s.lower() or "네이버" in s
+        else ("구글 뉴스" if "google" in s.lower() or "구글" in s else "기타")
     )
     # coins 컬럼(list)에서 BTC/ETH 여부 추출
     df["has_btc"] = df["coins"].apply(lambda c: "BTC" in (c or []))
@@ -383,7 +383,7 @@ def _build_stats_df(raw: list[dict]) -> pd.DataFrame:
 def _render_daily_tab(df: pd.DataFrame) -> None:
     """일별 수집 현황 차트를 렌더링한다.
 
-    Args:
+    매개변수:
         df: 통계용 DataFrame
     """
     st.subheader("일별 뉴스 수집 건수")
@@ -395,7 +395,7 @@ def _render_daily_tab(df: pd.DataFrame) -> None:
     )
 
     sources = daily["source"].unique()
-    colors = {"Naver News": "#03C75A", "Google News": "#4285F4", "기타": "#888888"}
+    colors = {"네이버 뉴스": "#03C75A", "구글 뉴스": "#4285F4", "기타": "#888888"}
 
     fig = go.Figure()
     for src in sources:
@@ -436,7 +436,7 @@ def _render_daily_tab(df: pd.DataFrame) -> None:
 def _render_cumulative_tab(df: pd.DataFrame) -> None:
     """누적 뉴스 수집 비교 차트를 렌더링한다.
 
-    Args:
+    매개변수:
         df: 통계용 DataFrame
     """
     st.subheader("누적 뉴스 수집 추이")
@@ -469,7 +469,7 @@ def _render_cumulative_tab(df: pd.DataFrame) -> None:
 
     # 네이버 vs 구글 누적 비교
     st.subheader("소스별 누적 비교")
-    for src, color in [("Naver News", "#03C75A"), ("Google News", "#4285F4")]:
+    for src, color in [("네이버 뉴스", "#03C75A"), ("구글 뉴스", "#4285F4")]:
         src_df = df[df["source"] == src].groupby("date").size().reset_index(name="daily")
         src_df = src_df.sort_values("date")
         src_df["누적"] = src_df["daily"].cumsum()
@@ -496,7 +496,7 @@ def _render_cumulative_tab(df: pd.DataFrame) -> None:
 def _render_source_tab(df: pd.DataFrame) -> None:
     """소스별(네이버/구글) 뉴스 비교 차트를 렌더링한다.
 
-    Args:
+    매개변수:
         df: 통계용 DataFrame
     """
     st.subheader("뉴스 소스별 비중")
@@ -537,7 +537,7 @@ def _render_source_tab(df: pd.DataFrame) -> None:
 def _render_coin_tab(df: pd.DataFrame) -> None:
     """코인별(BTC/ETH) 뉴스 비교 차트를 렌더링한다.
 
-    Args:
+    매개변수:
         df: 통계용 DataFrame
     """
     st.subheader("코인별 언급 뉴스 추이")
@@ -552,7 +552,7 @@ def _render_coin_tab(df: pd.DataFrame) -> None:
         x=daily_coin["date"].astype(str),
         y=daily_coin["BTC"],
         mode="lines+markers",
-        name="Bitcoin (BTC)",
+        name="비트코인 (BTC)",
         line={"color": "#F7931A", "width": 2},
         hovertemplate="<b>%{x}</b><br>BTC %{y}건<extra></extra>",
     ))
@@ -560,7 +560,7 @@ def _render_coin_tab(df: pd.DataFrame) -> None:
         x=daily_coin["date"].astype(str),
         y=daily_coin["ETH"],
         mode="lines+markers",
-        name="Ethereum (ETH)",
+        name="이더리움 (ETH)",
         line={"color": "#627EEA", "width": 2},
         hovertemplate="<b>%{x}</b><br>ETH %{y}건<extra></extra>",
     ))
@@ -579,10 +579,10 @@ def _render_coin_tab(df: pd.DataFrame) -> None:
     col1, col2 = st.columns(2)
     with col1:
         btc_total = int(df["has_btc"].sum())
-        st.metric("Bitcoin (BTC) 언급", f"{btc_total:,} 건")
+        st.metric("비트코인 (BTC) 언급", f"{btc_total:,} 건")
     with col2:
         eth_total = int(df["has_eth"].sum())
-        st.metric("Ethereum (ETH) 언급", f"{eth_total:,} 건")
+        st.metric("이더리움 (ETH) 언급", f"{eth_total:,} 건")
 
 
 # ── 메인 레이아웃 ────────────────────────────────────────────
@@ -648,7 +648,7 @@ def main() -> None:
             st.error(f"뉴스 로드 실패: {e}")
             news_list = []
 
-    tab_all, tab_btc, tab_eth = st.tabs(["전체", "Bitcoin (BTC)", "Ethereum (ETH)"])
+    tab_all, tab_btc, tab_eth = st.tabs(["전체", "비트코인 (BTC)", "이더리움 (ETH)"])
     with tab_all:
         render_news_list(news_list)
     with tab_btc:
@@ -693,7 +693,7 @@ def main() -> None:
 def _save_news_to_db(limit: int) -> None:
     """뉴스를 수집하여 Supabase DB에 저장한다.
 
-    Args:
+    매개변수:
         limit: 저장할 최대 뉴스 수
     """
     db = _get_db_client()
@@ -714,7 +714,7 @@ def _render_sidebar_info() -> None:
     """사이드바 하단 앱 정보를 렌더링한다."""
     st.caption(
         "**CryptAsis v0.1**\n\n"
-        "뉴스: CryptoCompare API\n"
+        "뉴스: 네이버 뉴스 API + 구글 뉴스 RSS\n"
         "가격: CoinGecko API\n"
         "AI: Groq llama-3.3-70b\n"
         "DB: Supabase\n\n"

@@ -49,11 +49,11 @@ def fetch_crypto_news(
 ) -> list[dict]:
     """네이버 뉴스(한국)와 구글 뉴스(해외)에서 크립토 뉴스를 통합 수집한다.
 
-    Args:
+    매개변수:
         coins: 필터링할 코인 심볼 목록 (예: ['BTC', 'ETH']). None이면 전체
         limit: 소스별 최대 수집 건수 (각각 limit//2 건씩)
 
-    Returns:
+    반환값:
         list[dict]: 정규화된 뉴스 딕셔너리 목록 (최신순 정렬)
     """
     per_source = max(limit // 2, 10)
@@ -73,11 +73,11 @@ def fetch_naver_news(coin_key: str = "ALL", limit: int = 20) -> list[dict]:
     환경변수 NAVER_CLIENT_ID, NAVER_CLIENT_SECRET 필요.
     키가 없으면 빈 목록을 반환한다.
 
-    Args:
+    매개변수:
         coin_key: 코인 키 ('BTC', 'ETH', 'ALL')
         limit: 최대 수집 건수 (최대 100)
 
-    Returns:
+    반환값:
         list[dict]: 정규화된 뉴스 딕셔너리 목록
     """
     client_id, client_secret = get_naver_config()
@@ -116,11 +116,11 @@ def fetch_google_news(coin_key: str = "ALL", limit: int = 20) -> list[dict]:
 
     API 키 불필요 — 구글 뉴스 RSS를 직접 파싱한다.
 
-    Args:
+    매개변수:
         coin_key: 코인 키 ('BTC', 'ETH', 'ALL')
         limit: 최대 수집 건수
 
-    Returns:
+    반환값:
         list[dict]: 정규화된 뉴스 딕셔너리 목록
     """
     query = _GOOGLE_QUERIES.get(coin_key, _GOOGLE_QUERIES["ALL"])
@@ -147,12 +147,12 @@ def fetch_google_news(coin_key: str = "ALL", limit: int = 20) -> list[dict]:
 def _parse_rss(xml_text: str, coin_key: str, limit: int) -> list[dict]:
     """구글 뉴스 RSS XML을 파싱하여 뉴스 목록으로 변환한다.
 
-    Args:
+    매개변수:
         xml_text: RSS XML 문자열
         coin_key: 코인 키
         limit: 최대 파싱 건수
 
-    Returns:
+    반환값:
         list[dict]: 정규화된 뉴스 딕셔너리 목록
     """
     try:
@@ -169,7 +169,7 @@ def _parse_rss(xml_text: str, coin_key: str, limit: int) -> list[dict]:
         pub_date = _tag_text(item, "pubDate")
         description = _tag_text(item, "description")
         source_el = item.find("source")
-        source = source_el.text if source_el is not None else "Google News"
+        source = source_el.text if source_el is not None else "구글 뉴스"
 
         published_at = _parse_rfc2822(pub_date)
         coins = _extract_coins(f"{title} {description}")
@@ -180,7 +180,7 @@ def _parse_rss(xml_text: str, coin_key: str, limit: int) -> list[dict]:
             "url": link,
             "source": source,
             "published_at": published_at,
-            "categories": "Google News",
+            "categories": "구글 뉴스",
             "coins": coins,
             "sentiment": None,
             "lang": "en",
@@ -192,11 +192,11 @@ def _parse_rss(xml_text: str, coin_key: str, limit: int) -> list[dict]:
 def _normalize_naver(item: dict, coin_key: str) -> dict:
     """네이버 뉴스 API 응답 항목을 정규화한다.
 
-    Args:
+    매개변수:
         item: 네이버 뉴스 API 원시 딕셔너리
         coin_key: 코인 키
 
-    Returns:
+    반환값:
         dict: 정규화된 뉴스 딕셔너리
     """
     title = _strip_html(item.get("title", ""))
@@ -208,9 +208,9 @@ def _normalize_naver(item: dict, coin_key: str) -> dict:
         "title": title,
         "body": description,
         "url": item.get("originallink") or item.get("link", ""),
-        "source": "Naver News",
+        "source": "네이버 뉴스",
         "published_at": _parse_rfc2822(pub_date),
-        "categories": "Naver News",
+        "categories": "네이버 뉴스",
         "coins": coins,
         "sentiment": None,
         "lang": "ko",
@@ -220,11 +220,11 @@ def _normalize_naver(item: dict, coin_key: str) -> dict:
 def _tag_text(element: ET.Element, tag: str) -> str:
     """XML 요소에서 태그 텍스트를 안전하게 추출한다.
 
-    Args:
+    매개변수:
         element: XML 요소
         tag: 태그명
 
-    Returns:
+    반환값:
         str: 태그 텍스트 (없으면 빈 문자열)
     """
     el = element.find(tag)
@@ -234,10 +234,10 @@ def _tag_text(element: ET.Element, tag: str) -> str:
 def _strip_html(text: str) -> str:
     """HTML 태그를 제거하고 순수 텍스트를 반환한다.
 
-    Args:
+    매개변수:
         text: HTML이 포함된 문자열
 
-    Returns:
+    반환값:
         str: HTML 태그가 제거된 문자열
     """
     import re
@@ -247,10 +247,10 @@ def _strip_html(text: str) -> str:
 def _parse_rfc2822(date_str: str) -> Optional[str]:
     """RFC 2822 형식 날짜 문자열을 ISO 8601로 변환한다.
 
-    Args:
+    매개변수:
         date_str: RFC 2822 형식 날짜 문자열 (예: 'Tue, 13 May 2026 10:00:00 +0900')
 
-    Returns:
+    반환값:
         str | None: ISO 8601 문자열 또는 None
     """
     if not date_str:
@@ -265,10 +265,10 @@ def _parse_rfc2822(date_str: str) -> Optional[str]:
 def _extract_coins(text: str) -> list[str]:
     """텍스트에서 언급된 코인 심볼을 추출한다.
 
-    Args:
+    매개변수:
         text: 분석할 텍스트
 
-    Returns:
+    반환값:
         list[str]: 코인 심볼 목록
     """
     mapping = {
