@@ -1,0 +1,45 @@
+# .gitignore
+# ============================================================
+# 파일명  : .gitignore
+# 버전    : V0p1
+# 작성일  : 2026-05-13
+# 작성자  : johnkft-hub
+#
+# [변경 이력]
+# 2026-05-13  V0p0  최초 작성 — 기본 보안 항목 정의
+# 2026-05-13  V0p1  *.log, venv/, .venv/, *.db 추가
+# ============================================================
+
+# ── 보안 파일 (절대 GitHub에 올리지 않음) ──
+.env
+.streamlit/secrets.toml
+git_name.txt
+lp.docx
+
+# ── Python 자동 생성 파일 ──
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ── 가상환경 ──
+venv/
+.venv/
+env/
+
+# ── 실행 중 생성되는 파일 ──
+*.log
+*.db
+*.sqlite3
+
+# ── Claude Code 내부 파일 ──
+.claude/
+
+# ── OS 자동 생성 파일 ──
+.DS_Store
+Thumbs.db
+
+# ── 배포/빌드 산출물 ──
+dist/
+build/
+*.egg-info/
