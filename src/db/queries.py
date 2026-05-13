@@ -1,12 +1,13 @@
 # src/db/queries.py
 # ============================================================
 # 파일명  : queries.py
-# 버전    : V0p1
+# 버전    : V0p2
 # 작성일  : 2026-05-13
 # 작성자  : johnkft-hub
 #
 # [변경 이력]
 # 2026-05-13  V0p1  최초 작성 — 뉴스/가격/분석 CRUD 쿼리
+# 2026-05-13  V0p2  뉴스 통계용 쿼리 추가 (일별/누적/소스/코인)
 # ============================================================
 
 from datetime import date, datetime
@@ -187,3 +188,51 @@ def get_analysis_by_date(
 
     result = query.execute()
     return result.data or []
+
+
+# ── 뉴스 통계 ────────────────────────────────────────────────
+
+def get_news_for_stats(
+    client: Client,
+    days: int = 30,
+) -> list[dict]:
+    """통계 분석용 뉴스 데이터를 조회한다.
+
+    published_at, source, coins 컬럼만 가져와 데이터 전송량을 최소화한다.
+
+    Args:
+        client: Supabase 클라이언트
+        days: 최근 몇 일치 데이터를 조회할지
+
+    Returns:
+        list[dict]: {'published_at', 'source', 'coins', 'created_at'} 목록
+    """
+    from datetime import timedelta
+
+    since = (datetime.utcnow() - timedelta(days=days)).isoformat()
+
+    result = (
+        client.table("crypto_news")
+        .select("published_at, source, coins, created_at")
+        .gte("created_at", since)
+        .order("created_at", desc=False)
+        .execute()
+    )
+    return result.data or []
+
+
+def get_news_total_count(client: Client) -> int:
+    """DB에 저장된 전체 뉴스 건수를 반환한다.
+
+    Args:
+        client: Supabase 클라이언트
+
+    Returns:
+        int: 전체 뉴스 건수
+    """
+    result = (
+        client.table("crypto_news")
+        .select("id", count="exact")
+        .execute()
+    )
+    return result.count or 0

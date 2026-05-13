@@ -1,12 +1,13 @@
 # src/app.py
 # ============================================================
 # 파일명  : app.py
-# 버전    : V0p1
+# 버전    : V0p2
 # 작성일  : 2026-05-13
 # 작성자  : johnkft-hub
 #
 # [변경 이력]
 # 2026-05-13  V0p1  최초 작성 — Streamlit 크립토 뉴스/가격 대시보드
+# 2026-05-13  V0p2  뉴스 통계 탭 추가 (일별 관리 + 누적 비교)
 # ============================================================
 
 from __future__ import annotations
@@ -32,6 +33,8 @@ from src.db.client import get_supabase_client
 from src.db.queries import (
     get_analysis_by_date,
     get_latest_news,
+    get_news_for_stats,
+    get_news_total_count,
     insert_analysis,
     insert_news,
     insert_prices,
@@ -295,6 +298,293 @@ def _display_analysis_result(result: dict) -> None:
         st.write(result.get("summary", "분석 결과 없음"))
 
 
+# ── 뉴스 통계 ────────────────────────────────────────────────
+
+def render_news_stats(db) -> None:
+    """뉴스 수집 통계 탭을 렌더링한다 (일별 관리 + 누적 비교).
+
+    Args:
+        db: Supabase 클라이언트 (None이면 안내 메시지 표시)
+    """
+    if not db:
+        st.warning("DB 연결이 필요합니다. .env의 Supabase 설정을 확인하세요.")
+        return
+
+    # ── 통계 기간 선택 ──
+    stat_days = st.slider("통계 조회 기간 (일)", 7, 90, 30, key="stat_days")
+
+    with st.spinner("DB에서 통계 데이터 로딩 중..."):
+        raw = get_news_for_stats(db, days=stat_days)
+        total = get_news_total_count(db)
+
+    if not raw:
+        st.info("저장된 뉴스 데이터가 없습니다. 사이드바의 '뉴스 DB 저장' 버튼을 먼저 실행하세요.")
+        return
+
+    df = _build_stats_df(raw)
+
+    # ── 상단 요약 지표 ──
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("DB 전체 누적", f"{total:,} 건")
+    with col2:
+        st.metric(f"최근 {stat_days}일 수집", f"{len(df):,} 건")
+    with col3:
+        naver_cnt = int((df["source"] == "Naver News").sum())
+        st.metric("네이버 뉴스", f"{naver_cnt:,} 건")
+    with col4:
+        google_cnt = int((df["source"] == "Google News").sum())
+        st.metric("구글 뉴스", f"{google_cnt:,} 건")
+
+    st.divider()
+
+    # ── 탭 구성 ──
+    tab_daily, tab_cumul, tab_source, tab_coin = st.tabs(
+        ["📅 일별 수집 현황", "📈 누적 데이터 비교", "🌐 소스별 비교", "🪙 코인별 비교"]
+    )
+
+    with tab_daily:
+        _render_daily_tab(df)
+
+    with tab_cumul:
+        _render_cumulative_tab(df)
+
+    with tab_source:
+        _render_source_tab(df)
+
+    with tab_coin:
+        _render_coin_tab(df)
+
+
+def _build_stats_df(raw: list[dict]) -> pd.DataFrame:
+    """raw 뉴스 데이터를 통계용 DataFrame으로 변환한다.
+
+    Args:
+        raw: DB에서 조회한 뉴스 딕셔너리 목록
+
+    Returns:
+        pd.DataFrame: 날짜/소스/코인 컬럼이 정리된 DataFrame
+    """
+    df = pd.DataFrame(raw)
+    df["created_at"] = pd.to_datetime(df["created_at"], utc=True)
+    df["date"] = df["created_at"].dt.date
+    df["source"] = df["source"].fillna("기타")
+    # source를 네이버/구글/기타 3가지로 정규화
+    df["source"] = df["source"].apply(
+        lambda s: "Naver News" if "naver" in s.lower()
+        else ("Google News" if "google" in s.lower() else "기타")
+    )
+    # coins 컬럼(list)에서 BTC/ETH 여부 추출
+    df["has_btc"] = df["coins"].apply(lambda c: "BTC" in (c or []))
+    df["has_eth"] = df["coins"].apply(lambda c: "ETH" in (c or []))
+    return df
+
+
+def _render_daily_tab(df: pd.DataFrame) -> None:
+    """일별 수집 현황 차트를 렌더링한다.
+
+    Args:
+        df: 통계용 DataFrame
+    """
+    st.subheader("일별 뉴스 수집 건수")
+
+    daily = (
+        df.groupby(["date", "source"])
+        .size()
+        .reset_index(name="count")
+    )
+
+    sources = daily["source"].unique()
+    colors = {"Naver News": "#03C75A", "Google News": "#4285F4", "기타": "#888888"}
+
+    fig = go.Figure()
+    for src in sources:
+        d = daily[daily["source"] == src]
+        fig.add_trace(go.Bar(
+            x=d["date"].astype(str),
+            y=d["count"],
+            name=src,
+            marker_color=colors.get(src, "#888"),
+            hovertemplate="<b>%{x}</b><br>%{y}건<extra>" + src + "</extra>",
+        ))
+
+    fig.update_layout(
+        barmode="stack",
+        xaxis_title="날짜",
+        yaxis_title="수집 건수",
+        height=380,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02),
+        margin={"t": 40, "b": 20, "l": 0, "r": 0},
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # 일별 요약 테이블
+    st.subheader("일별 수집 내역")
+    pivot = (
+        df.groupby(["date", "source"])
+        .size()
+        .unstack(fill_value=0)
+        .reset_index()
+    )
+    pivot["합계"] = pivot.select_dtypes("number").sum(axis=1)
+    pivot = pivot.sort_values("date", ascending=False).rename(columns={"date": "날짜"})
+    st.dataframe(pivot, use_container_width=True, hide_index=True)
+
+
+def _render_cumulative_tab(df: pd.DataFrame) -> None:
+    """누적 뉴스 수집 비교 차트를 렌더링한다.
+
+    Args:
+        df: 통계용 DataFrame
+    """
+    st.subheader("누적 뉴스 수집 추이")
+
+    daily_total = df.groupby("date").size().reset_index(name="daily")
+    daily_total = daily_total.sort_values("date")
+    daily_total["누적"] = daily_total["daily"].cumsum()
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=daily_total["date"].astype(str),
+        y=daily_total["누적"],
+        mode="lines+markers",
+        name="누적 수집",
+        fill="tozeroy",
+        fillcolor="rgba(247,147,26,0.15)",
+        line={"color": "#F7931A", "width": 2},
+        hovertemplate="<b>%{x}</b><br>누적 %{y}건<extra></extra>",
+    ))
+
+    fig.update_layout(
+        xaxis_title="날짜",
+        yaxis_title="누적 건수",
+        height=350,
+        margin={"t": 30, "b": 20, "l": 0, "r": 0},
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # 네이버 vs 구글 누적 비교
+    st.subheader("소스별 누적 비교")
+    for src, color in [("Naver News", "#03C75A"), ("Google News", "#4285F4")]:
+        src_df = df[df["source"] == src].groupby("date").size().reset_index(name="daily")
+        src_df = src_df.sort_values("date")
+        src_df["누적"] = src_df["daily"].cumsum()
+
+        fig2 = go.Figure()
+        fig2.add_trace(go.Scatter(
+            x=src_df["date"].astype(str),
+            y=src_df["누적"],
+            mode="lines+markers",
+            name=src,
+            line={"color": color, "width": 2},
+            hovertemplate=f"<b>%{{x}}</b><br>{src} 누적 %{{y}}건<extra></extra>",
+        ))
+        fig2.update_layout(
+            title=src,
+            height=250,
+            margin={"t": 30, "b": 10, "l": 0, "r": 0},
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+
+
+def _render_source_tab(df: pd.DataFrame) -> None:
+    """소스별(네이버/구글) 뉴스 비교 차트를 렌더링한다.
+
+    Args:
+        df: 통계용 DataFrame
+    """
+    st.subheader("뉴스 소스별 비중")
+
+    source_counts = df["source"].value_counts().reset_index()
+    source_counts.columns = ["소스", "건수"]
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        fig = go.Figure(go.Pie(
+            labels=source_counts["소스"],
+            values=source_counts["건수"],
+            hole=0.45,
+            marker_colors=["#03C75A", "#4285F4", "#888888"],
+            hovertemplate="<b>%{label}</b><br>%{value}건 (%{percent})<extra></extra>",
+        ))
+        fig.update_layout(
+            title="소스별 비중",
+            height=320,
+            margin={"t": 40, "b": 0, "l": 0, "r": 0},
+            paper_bgcolor="rgba(0,0,0,0)",
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col2:
+        st.dataframe(
+            source_counts,
+            use_container_width=True,
+            hide_index=True,
+        )
+        st.caption("일별 소스 추이")
+        daily_src = df.groupby(["date", "source"]).size().unstack(fill_value=0).reset_index()
+        daily_src = daily_src.sort_values("date", ascending=False).head(10)
+        st.dataframe(daily_src, use_container_width=True, hide_index=True)
+
+
+def _render_coin_tab(df: pd.DataFrame) -> None:
+    """코인별(BTC/ETH) 뉴스 비교 차트를 렌더링한다.
+
+    Args:
+        df: 통계용 DataFrame
+    """
+    st.subheader("코인별 언급 뉴스 추이")
+
+    daily_coin = df.groupby("date").agg(
+        BTC=("has_btc", "sum"),
+        ETH=("has_eth", "sum"),
+    ).reset_index().sort_values("date")
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=daily_coin["date"].astype(str),
+        y=daily_coin["BTC"],
+        mode="lines+markers",
+        name="Bitcoin (BTC)",
+        line={"color": "#F7931A", "width": 2},
+        hovertemplate="<b>%{x}</b><br>BTC %{y}건<extra></extra>",
+    ))
+    fig.add_trace(go.Scatter(
+        x=daily_coin["date"].astype(str),
+        y=daily_coin["ETH"],
+        mode="lines+markers",
+        name="Ethereum (ETH)",
+        line={"color": "#627EEA", "width": 2},
+        hovertemplate="<b>%{x}</b><br>ETH %{y}건<extra></extra>",
+    ))
+    fig.update_layout(
+        xaxis_title="날짜",
+        yaxis_title="언급 건수",
+        height=360,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02),
+        margin={"t": 30, "b": 20, "l": 0, "r": 0},
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # BTC vs ETH 총계 비교
+    col1, col2 = st.columns(2)
+    with col1:
+        btc_total = int(df["has_btc"].sum())
+        st.metric("Bitcoin (BTC) 언급", f"{btc_total:,} 건")
+    with col2:
+        eth_total = int(df["has_eth"].sum())
+        st.metric("Ethereum (ETH) 언급", f"{eth_total:,} 건")
+
+
 # ── 메인 레이아웃 ────────────────────────────────────────────
 
 def main() -> None:
@@ -392,6 +682,12 @@ def main() -> None:
                 st.markdown(summary)
             except RuntimeError as e:
                 st.error(f"요약 오류: {e}")
+
+    st.divider()
+
+    # ── 뉴스 통계 ──
+    st.header("📊 뉴스 수집 통계")
+    render_news_stats(_get_db_client())
 
 
 def _save_news_to_db(limit: int) -> None:
