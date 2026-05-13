@@ -10,14 +10,12 @@
 # 2026-05-13  V0p2  네이버 뉴스 API + 구글 뉴스 RSS 피드로 교체
 # ============================================================
 
-import os
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from typing import Optional
 
 import requests
-from dotenv import load_dotenv
 
 try:
     import truststore
@@ -25,7 +23,7 @@ try:
 except ImportError:
     pass
 
-load_dotenv()
+from src.utils.config import get_naver_config
 
 _NAVER_NEWS_URL = "https://openapi.naver.com/v1/search/news.json"
 _GOOGLE_NEWS_RSS = "https://news.google.com/rss/search"
@@ -82,8 +80,7 @@ def fetch_naver_news(coin_key: str = "ALL", limit: int = 20) -> list[dict]:
     Returns:
         list[dict]: 정규화된 뉴스 딕셔너리 목록
     """
-    client_id = os.getenv("NAVER_CLIENT_ID", "")
-    client_secret = os.getenv("NAVER_CLIENT_SECRET", "")
+    client_id, client_secret = get_naver_config()
 
     if not client_id or not client_secret:
         return []
@@ -136,7 +133,7 @@ def fetch_google_news(coin_key: str = "ALL", limit: int = 20) -> list[dict]:
 
     try:
         response = requests.get(
-            _GOOGLE_RSS_URL if hasattr(__builtins__, '_GOOGLE_RSS_URL') else _GOOGLE_NEWS_RSS,
+            _GOOGLE_NEWS_RSS,
             params=params,
             timeout=10,
             headers={"User-Agent": "Mozilla/5.0"},

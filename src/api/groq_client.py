@@ -9,13 +9,10 @@
 # 2026-05-13  V0p1  최초 작성 — Groq llama-3.3-70b 분석 연동
 # ============================================================
 
-import os
-from dotenv import load_dotenv
 from groq import Groq
 
 from src.api.prompts import build_correlation_prompt, build_summary_prompt
-
-load_dotenv()
+from src.utils.config import get_groq_api_key
 
 _MODEL = "llama-3.3-70b-versatile"
 _MAX_TOKENS = 2048
@@ -24,18 +21,16 @@ _MAX_TOKENS = 2048
 def _get_client() -> Groq:
     """Groq 클라이언트를 초기화하여 반환한다.
 
+    로컬: .env의 GROQ_API_KEY 사용
+    클라우드: Streamlit secrets 사용
+
     Returns:
         Groq: 초기화된 Groq 클라이언트
 
     Raises:
-        RuntimeError: GROQ_API_KEY 환경변수 미설정 시
+        RuntimeError: API 키 미설정 시
     """
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
-        raise RuntimeError(
-            "GROQ_API_KEY 환경변수가 설정되지 않았습니다. .env 파일을 확인하세요."
-        )
-    return Groq(api_key=api_key)
+    return Groq(api_key=get_groq_api_key())
 
 
 def analyze_news_price_correlation(
