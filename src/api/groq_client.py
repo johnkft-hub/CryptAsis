@@ -24,10 +24,10 @@ def _get_client() -> Groq:
     로컬: .env의 GROQ_API_KEY 사용
     클라우드: Streamlit secrets 사용
 
-    Returns:
+    반환값:
         Groq: 초기화된 Groq 클라이언트
 
-    Raises:
+    예외:
         RuntimeError: API 키 미설정 시
     """
     return Groq(api_key=get_groq_api_key())
@@ -41,13 +41,13 @@ def analyze_news_price_correlation(
 ) -> dict:
     """뉴스와 가격 데이터의 상관관계를 Groq AI로 분석한다.
 
-    Args:
+    매개변수:
         coin: 분석 대상 코인 심볼 (예: 'BTC', 'ETH')
         news_list: 뉴스 딕셔너리 목록
         price_data: 가격 딕셔너리
         analysis_date: 분석 날짜 문자열 (YYYY-MM-DD)
 
-    Returns:
+    반환값:
         dict: {
             'summary': str,           # 전체 분석 텍스트
             'sentiment': str,         # 'positive' | 'negative' | 'neutral'
@@ -56,7 +56,7 @@ def analyze_news_price_correlation(
             'raw_response': str,      # AI 원문 응답
         }
 
-    Raises:
+    예외:
         RuntimeError: API 키 미설정 시
     """
     client = _get_client()
@@ -86,14 +86,14 @@ def analyze_news_price_correlation(
 def summarize_daily_news(news_list: list[dict], analysis_date: str) -> str:
     """일일 뉴스를 Groq AI로 요약한다.
 
-    Args:
+    매개변수:
         news_list: 뉴스 딕셔너리 목록
         analysis_date: 분석 날짜 문자열 (YYYY-MM-DD)
 
-    Returns:
+    반환값:
         str: 요약 텍스트
 
-    Raises:
+    예외:
         RuntimeError: API 키 미설정 시
     """
     client = _get_client()
@@ -112,11 +112,11 @@ def summarize_daily_news(news_list: list[dict], analysis_date: str) -> str:
 def _parse_analysis_response(raw: str, coin: str) -> dict:
     """AI 분석 원문 텍스트를 구조화된 딕셔너리로 변환한다.
 
-    Args:
+    매개변수:
         raw: AI 원문 응답 텍스트
         coin: 분석 대상 코인 심볼
 
-    Returns:
+    반환값:
         dict: 파싱된 분석 딕셔너리
     """
     raw_lower = raw.lower()

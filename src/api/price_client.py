@@ -33,13 +33,13 @@ _COIN_ID_MAP = {
 def fetch_current_prices(coins: list[str] = None) -> list[dict]:
     """CoinGecko에서 실시간 가격 데이터를 가져온다.
 
-    Args:
+    매개변수:
         coins: 조회할 코인 심볼 목록 (예: ['BTC', 'ETH']). None이면 BTC/ETH
 
-    Returns:
+    반환값:
         list[dict]: 정규화된 가격 딕셔너리 목록
 
-    Raises:
+    예외:
         requests.HTTPError: API 오류 시
     """
     if coins is None:
@@ -81,14 +81,14 @@ def fetch_current_prices(coins: list[str] = None) -> list[dict]:
 def fetch_price_history(coin: str, days: int = 7) -> list[dict]:
     """CoinGecko에서 코인의 가격 이력을 가져온다.
 
-    Args:
+    매개변수:
         coin: 코인 심볼 (예: 'BTC', 'ETH')
         days: 조회할 일수 (1~365)
 
-    Returns:
+    반환값:
         list[dict]: {'timestamp': str, 'price_usd': float} 딕셔너리 목록
 
-    Raises:
+    예외:
         ValueError: 지원하지 않는 코인 심볼
         requests.HTTPError: API 오류 시
     """
@@ -118,11 +118,11 @@ def fetch_price_history(coin: str, days: int = 7) -> list[dict]:
 def _normalize_price(item: dict, id_to_symbol: dict) -> dict:
     """CoinGecko markets 응답을 DB 저장 형식으로 변환한다.
 
-    Args:
+    매개변수:
         item: CoinGecko 원시 가격 딕셔너리
         id_to_symbol: coingecko_id -> 심볼 매핑
 
-    Returns:
+    반환값:
         dict: 정규화된 가격 딕셔너리
     """
     coin_id = item.get("id", "")
@@ -142,10 +142,10 @@ def _normalize_price(item: dict, id_to_symbol: dict) -> dict:
 def _ms_to_iso(ms_timestamp: int) -> str:
     """밀리초 타임스탬프를 ISO 8601 문자열로 변환한다.
 
-    Args:
+    매개변수:
         ms_timestamp: 밀리초 단위 UNIX 타임스탬프
 
-    Returns:
+    반환값:
         str: ISO 8601 형식 문자열 (UTC)
     """
     from datetime import datetime, timezone

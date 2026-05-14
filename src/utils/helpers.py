@@ -16,7 +16,7 @@ from typing import Optional
 def today_kst() -> date:
     """한국 표준시(KST, UTC+9) 기준 오늘 날짜를 반환한다.
 
-    Returns:
+    반환값:
         date: KST 기준 오늘 날짜
     """
     from datetime import timedelta
@@ -27,10 +27,10 @@ def today_kst() -> date:
 def format_price_change(change: Optional[float]) -> str:
     """가격 변동률을 화살표 포함 문자열로 포맷한다.
 
-    Args:
+    매개변수:
         change: 변동률 (예: 2.5, -1.3). None이면 '-' 반환
 
-    Returns:
+    반환값:
         str: 포맷된 문자열 (예: '▲ 2.50%', '▼ 1.30%')
     """
     if change is None:
@@ -42,11 +42,11 @@ def format_price_change(change: Optional[float]) -> str:
 def format_large_number(value: Optional[float], prefix: str = "$") -> str:
     """큰 숫자를 K/M/B 단위로 포맷한다.
 
-    Args:
+    매개변수:
         value: 포맷할 숫자. None이면 '-' 반환
         prefix: 접두사 (기본값: '$')
 
-    Returns:
+    반환값:
         str: 포맷된 문자열 (예: '$1.23T', '$456.78B')
     """
     if value is None:
@@ -66,10 +66,10 @@ def format_large_number(value: Optional[float], prefix: str = "$") -> str:
 def sentiment_to_emoji(sentiment: Optional[str]) -> str:
     """센티멘트 문자열을 이모지로 변환한다.
 
-    Args:
+    매개변수:
         sentiment: 'positive', 'negative', 'neutral' 중 하나
 
-    Returns:
+    반환값:
         str: 대응 이모지 문자열
     """
     mapping = {
@@ -83,11 +83,11 @@ def sentiment_to_emoji(sentiment: Optional[str]) -> str:
 def truncate_text(text: str, max_len: int = 150) -> str:
     """텍스트를 지정된 길이로 자르고 '...'을 붙인다.
 
-    Args:
+    매개변수:
         text: 원본 텍스트
         max_len: 최대 문자 수
 
-    Returns:
+    반환값:
         str: 잘린 텍스트
     """
     if not text:
@@ -98,10 +98,10 @@ def truncate_text(text: str, max_len: int = 150) -> str:
 def parse_date_param(date_str: Optional[str]) -> date:
     """날짜 문자열을 date 객체로 변환한다. 빈 값이면 오늘(KST) 반환.
 
-    Args:
+    매개변수:
         date_str: 'YYYY-MM-DD' 형식 날짜 문자열 또는 None
 
-    Returns:
+    반환값:
         date: 파싱된 날짜 (오류 시 오늘 KST 날짜)
     """
     if not date_str:

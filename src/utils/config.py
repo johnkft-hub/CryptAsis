@@ -23,11 +23,11 @@ def get_secret(key: str, default: str = "") -> str:
     Streamlit Cloud 배포 시에는 st.secrets를 우선 사용하고,
     로컬 개발 시에는 .env 파일의 환경변수를 사용한다.
 
-    Args:
+    매개변수:
         key: 설정 키 이름
         default: 기본값 (키가 없을 때 반환)
 
-    Returns:
+    반환값:
         str: 설정값
     """
     try:
@@ -43,10 +43,10 @@ def get_secret(key: str, default: str = "") -> str:
 def get_supabase_config() -> tuple[str, str]:
     """Supabase URL과 ANON KEY를 반환한다.
 
-    Returns:
+    반환값:
         tuple[str, str]: (SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    Raises:
+    예외:
         RuntimeError: 설정값 미존재 시
     """
     url = get_secret("SUPABASE_URL")
@@ -61,10 +61,10 @@ def get_supabase_config() -> tuple[str, str]:
 def get_groq_api_key() -> str:
     """Groq API 키를 반환한다.
 
-    Returns:
+    반환값:
         str: GROQ_API_KEY
 
-    Raises:
+    예외:
         RuntimeError: 키 미설정 시
     """
     key = get_secret("GROQ_API_KEY")
@@ -76,7 +76,7 @@ def get_groq_api_key() -> str:
 def get_naver_config() -> tuple[str, str]:
     """네이버 API Client ID와 Secret을 반환한다.
 
-    Returns:
+    반환값:
         tuple[str, str]: (NAVER_CLIENT_ID, NAVER_CLIENT_SECRET)
     """
     return (

@@ -18,13 +18,13 @@ def build_correlation_prompt(
 ) -> str:
     """뉴스-가격 상관관계 분석을 위한 Groq 프롬프트를 생성한다.
 
-    Args:
+    매개변수:
         coin: 분석 대상 코인 심볼 (예: 'BTC', 'ETH')
         news_list: 뉴스 딕셔너리 목록 (title, body, source 포함)
         price_data: 가격 딕셔너리 (price_usd, change_24h, change_7d 포함)
         analysis_date: 분석 날짜 문자열 (YYYY-MM-DD)
 
-    Returns:
+    반환값:
         str: Groq API에 전달할 프롬프트 문자열
     """
     news_section = _format_news_section(news_list)
@@ -55,11 +55,11 @@ def build_correlation_prompt(
 def build_summary_prompt(news_list: list[dict], analysis_date: str) -> str:
     """일일 크립토 뉴스 전체 요약 프롬프트를 생성한다.
 
-    Args:
+    매개변수:
         news_list: 뉴스 딕셔너리 목록
         analysis_date: 분석 날짜 문자열
 
-    Returns:
+    반환값:
         str: Groq API에 전달할 프롬프트 문자열
     """
     news_section = _format_news_section(news_list)
@@ -83,10 +83,10 @@ def build_summary_prompt(news_list: list[dict], analysis_date: str) -> str:
 def _format_news_section(news_list: list[dict]) -> str:
     """뉴스 목록을 프롬프트용 텍스트로 포맷한다.
 
-    Args:
+    매개변수:
         news_list: 뉴스 딕셔너리 목록
 
-    Returns:
+    반환값:
         str: 포맷된 뉴스 섹션 문자열
     """
     if not news_list:
@@ -105,11 +105,11 @@ def _format_news_section(news_list: list[dict]) -> str:
 def _format_price_section(coin: str, price_data: dict) -> str:
     """가격 데이터를 프롬프트용 텍스트로 포맷한다.
 
-    Args:
+    매개변수:
         coin: 코인 심볼
         price_data: 가격 딕셔너리
 
-    Returns:
+    반환값:
         str: 포맷된 가격 섹션 문자열
     """
     if not price_data:

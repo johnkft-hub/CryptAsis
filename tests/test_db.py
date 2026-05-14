@@ -32,10 +32,10 @@ from src.db.queries import (
 def _mock_client(return_data: list) -> MagicMock:
     """Supabase 클라이언트 Mock을 생성한다.
 
-    Args:
+    매개변수:
         return_data: .execute() 반환값으로 설정할 데이터
 
-    Returns:
+    반환값:
         MagicMock: 설정된 클라이언트 Mock
     """
     execute_result = MagicMock()

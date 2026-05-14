@@ -19,10 +19,10 @@ def get_supabase_client() -> Client:
     로컬: .env의 SUPABASE_URL, SUPABASE_ANON_KEY 사용
     클라우드: Streamlit secrets 사용
 
-    Returns:
+    반환값:
         Client: 초기화된 Supabase 클라이언트
 
-    Raises:
+    예외:
         RuntimeError: 설정값 미존재 시
     """
     url, key = get_supabase_config()
