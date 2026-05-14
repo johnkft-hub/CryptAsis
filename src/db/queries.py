@@ -17,27 +17,45 @@ from supabase import Client
 
 # ── 뉴스 ────────────────────────────────────────────────────
 
+_CRYPTO_NEWS_COLUMNS = {
+    "title", "body", "url", "source", "published_at",
+    "categories", "coins", "sentiment", "lang",
+}
+
+
 def insert_news(client: Client, news_list: list[dict]) -> int:
     """뉴스 목록을 crypto_news 테이블에 저장한다.
 
     중복 URL은 DB 유니크 제약(url 컬럼)으로 자동 무시된다.
 
-    Args:
+    매개변수:
         client: Supabase 클라이언트
         news_list: 저장할 뉴스 딕셔너리 목록
 
-    Returns:
+    반환값:
         int: 저장 성공 건수
     """
     if not news_list:
         return 0
 
-    result = (
-        client.table("crypto_news")
-        .upsert(news_list, on_conflict="url", ignore_duplicates=True)
-        .execute()
-    )
-    return len(result.data) if result.data else 0
+    try:
+        result = (
+            client.table("crypto_news")
+            .upsert(news_list, on_conflict="url", ignore_duplicates=True)
+            .execute()
+        )
+        return len(result.data) if result.data else 0
+    except Exception as e:
+        err_str = str(e)
+        if "PGRST204" in err_str and "'lang'" in err_str:
+            stripped = [{k: v for k, v in row.items() if k != "lang"} for row in news_list]
+            result = (
+                client.table("crypto_news")
+                .upsert(stripped, on_conflict="url", ignore_duplicates=True)
+                .execute()
+            )
+            return len(result.data) if result.data else 0
+        raise
 
 
 def get_news_by_date(
