@@ -35,7 +35,7 @@
 - DB: Supabase (RLS 필수)
 - AI 모델: llama-3.3-70b-versatile (Groq)
 - 저장소: github.com/johnkft-hub
-- 뉴스 소스: CryptoCompare News API (무료)
+- 뉴스 소스: 네이버 뉴스 API (한국어) + 구글 뉴스 RSS (영어)
 - 가격 소스: CoinGecko API (무료)
 - 분석 대상: Bitcoin (BTC), Ethereum (ETH)
 
@@ -74,7 +74,7 @@
 │   │   └── queries.py      # RLS 적용 쿼리
 │   ├── api/
 │   │   ├── groq_client.py  # Groq API 호출
-│   │   ├── news_client.py  # CryptoCompare 뉴스 수집
+│   │   ├── news_client.py  # 네이버+구글 뉴스 수집
 │   │   ├── price_client.py # CoinGecko 가격 수집
 │   │   └── prompts.py      # 프롬프트 템플릿
 │   └── utils/

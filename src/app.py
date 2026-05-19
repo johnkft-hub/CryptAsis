@@ -369,10 +369,9 @@ def _build_stats_df(raw: list[dict]) -> pd.DataFrame:
     df["created_at"] = pd.to_datetime(df["created_at"], utc=True)
     df["date"] = df["created_at"].dt.date
     df["source"] = df["source"].fillna("기타")
-    # source를 네이버/구글/기타 3가지로 정규화
+    # 네이버는 source 값이 "네이버 뉴스"로 고정; 그 외는 구글 뉴스 RSS 출처
     df["source"] = df["source"].apply(
-        lambda s: "네이버 뉴스" if "naver" in s.lower() or "네이버" in s
-        else ("구글 뉴스" if "google" in s.lower() or "구글" in s else "기타")
+        lambda s: "네이버 뉴스" if "네이버" in (s or "") else "구글 뉴스"
     )
     # coins 컬럼(list)에서 BTC/ETH 여부 추출
     df["has_btc"] = df["coins"].apply(lambda c: "BTC" in (c or []))
